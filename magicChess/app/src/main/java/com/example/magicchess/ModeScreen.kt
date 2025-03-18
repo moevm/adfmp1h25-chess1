@@ -13,7 +13,7 @@ class ModeScreen : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_mode_screen)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.about_2)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
@@ -25,23 +25,25 @@ class ModeScreen : AppCompatActivity() {
         val button_back_chess: Button = findViewById(R.id.backChess)
 
         button_classic_chess.setOnClickListener {
-            val intent = Intent(this, ClassicChess::class.java)
+            val intent = Intent(this, TimeScreen::class.java)
+            intent.putExtra("type", "classic")
             startActivity(intent)
         }
 
         button_crazy_chess.setOnClickListener {
-            val intent = Intent(this, CrazyChess::class.java)
+            val intent = Intent(this, TimeScreen::class.java)
+            intent.putExtra("type", "crazy")
             startActivity(intent)
         }
 
         button_magic_chess.setOnClickListener {
-            val intent = Intent(this, MagicChess::class.java)
+            val intent = Intent(this, TimeScreen::class.java)
+            intent.putExtra("type", "magic")
             startActivity(intent)
         }
 
         button_back_chess.setOnClickListener {
-            val intent = Intent(this, MainScreen::class.java)
-            startActivity(intent)
+            finish()
         }
     }
 }

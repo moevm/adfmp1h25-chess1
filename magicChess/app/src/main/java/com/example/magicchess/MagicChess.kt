@@ -13,7 +13,7 @@ class MagicChess : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_magic_chess)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.about_2)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
@@ -22,8 +22,7 @@ class MagicChess : AppCompatActivity() {
         val button_back_crazy: Button = findViewById(R.id.backMagicChess)
 
         button_back_crazy.setOnClickListener {
-            val intent = Intent(this, ModeScreen::class.java)
-            startActivity(intent)
+            finish()
         }
     }
 }
