@@ -135,7 +135,7 @@ class ClassicChess : AppCompatActivity() {
         return when (piece) {
             "white_pawn", "black_pawn" -> isValidPawnMove(piece, fromRow, fromCol, toRow, toCol)
             "white_rook", "black_rook" -> isValidRookMove(fromRow, fromCol, toRow, toCol)
-            "white_knight", "black_knight" -> isValidKnightMove(fromRow, fromCol, toRow, toCol)
+            "white_knight", "black_knight" -> isValidKnightMove(fromRow, fromCol, toRow, toCol) // Используем логику коня
             "white_bishop", "black_bishop" -> isValidBishopMove(fromRow, fromCol, toRow, toCol)
             "white_queen", "black_queen" -> isValidQueenMove(fromRow, fromCol, toRow, toCol)
             "white_king", "black_king" -> isValidKingMove(fromRow, fromCol, toRow, toCol)
@@ -143,10 +143,10 @@ class ClassicChess : AppCompatActivity() {
         }
     }
 
-    // Проверка на допустимость хода для пешки
     private fun isValidPawnMove(piece: String?, fromRow: Int, fromCol: Int, toRow: Int, toCol: Int): Boolean {
         val direction = if (piece == "white_pawn") -1 else 1 // Направление для белой и черной пешки
-        
+
+        // Ход на одну клетку вперед
         if (fromCol == toCol && boardState[toRow][toCol] == null && toRow - fromRow == direction) {
             return true
         }
@@ -171,6 +171,7 @@ class ClassicChess : AppCompatActivity() {
         return false
     }
 
+
     // Метод для проверки того, является ли фигура на целевой клетке того же цвета, что и пешка
     private fun isSameColor(piece: String?, targetPiece: String): Boolean {
         return (piece?.startsWith("white") == true && targetPiece.startsWith("white")) ||
@@ -183,29 +184,133 @@ class ClassicChess : AppCompatActivity() {
         return isPathClear(fromRow, fromCol, toRow, toCol)
     }
 
-    // Пример для коня
     private fun isValidKnightMove(fromRow: Int, fromCol: Int, toRow: Int, toCol: Int): Boolean {
-        return (Math.abs(fromRow - toRow) == 2 && Math.abs(fromCol - toCol) == 1) ||
-                (Math.abs(fromRow - toRow) == 1 && Math.abs(fromCol - toCol) == 2)
+        val rowDiff = Math.abs(fromRow - toRow)
+        val colDiff = Math.abs(fromCol - toCol)
+
+        if ((rowDiff == 2 && colDiff == 1) || (rowDiff == 1 && colDiff == 2)) {
+            val piece = boardState[fromRow][fromCol]
+            val targetPiece = boardState[toRow][toCol]
+            if (targetPiece != null && isSameColor(piece, targetPiece)) {
+                return false
+            }
+            return true
+        }
+
+        return false
     }
 
-    // Пример для слона
+
+
     private fun isValidBishopMove(fromRow: Int, fromCol: Int, toRow: Int, toCol: Int): Boolean {
+
         if (Math.abs(fromRow - toRow) != Math.abs(fromCol - toCol)) return false
+        val piece = boardState[fromRow][fromCol]
+        val targetPiece = boardState[toRow][toCol]
+        if (targetPiece != null && isSameColor(piece, targetPiece)) {
+            return false
+        }
+
         return isPathClear(fromRow, fromCol, toRow, toCol)
     }
 
-    // Пример для ферзя
     private fun isValidQueenMove(fromRow: Int, fromCol: Int, toRow: Int, toCol: Int): Boolean {
-        return isValidRookMove(fromRow, fromCol, toRow, toCol) || isValidBishopMove(fromRow, fromCol, toRow, toCol)
+        // Проверка на движение по горизонтали или вертикали (как у ладьи)
+        if (fromRow == toRow || fromCol == toCol) {
+            // Проверяем, не стоит ли на целевой клетке фигура того же цвета
+            val piece = boardState[fromRow][fromCol]
+            val targetPiece = boardState[toRow][toCol]
+            if (targetPiece != null && isSameColor(piece, targetPiece)) {
+                return false // Если фигура того же цвета, то движение недопустимо
+            }
+
+            // Проверка пути (горизонталь или вертикаль)
+            return isPathClear(fromRow, fromCol, toRow, toCol)
+        }
+
+        // Проверка на движение по диагонали (как у слона)
+        if (Math.abs(fromRow - toRow) == Math.abs(fromCol - toCol)) {
+            // Проверяем, не стоит ли на целевой клетке фигура того же цвета
+            val piece = boardState[fromRow][fromCol]
+            val targetPiece = boardState[toRow][toCol]
+            if (targetPiece != null && isSameColor(piece, targetPiece)) {
+                return false
+            }
+
+            // Проверка пути (диагональ)
+            return isPathClear(fromRow, fromCol, toRow, toCol)
+        }
+
+        return false // Если не горизонталь, не вертикаль, и не диагональ — возвращаем false
     }
 
-    // Пример для короля
+    // Проверка на допустимость хода для короля с учетом угрозы
     private fun isValidKingMove(fromRow: Int, fromCol: Int, toRow: Int, toCol: Int): Boolean {
-        return (Math.abs(fromRow - toRow) <= 1 && Math.abs(fromCol - toCol) <= 1)
+        // Король может двигаться только на одну клетку в любом направлении
+        val rowDiff = Math.abs(fromRow - toRow)
+        val colDiff = Math.abs(fromCol - toCol)
+
+        // Если разница по строкам и/или столбцам больше 1, то это недопустимый ход
+        if (rowDiff > 1 || colDiff > 1) {
+            return false
+        }
+
+        // Проверка, что на целевой клетке нет фигуры того же цвета
+        val piece = boardState[fromRow][fromCol]
+        val targetPiece = boardState[toRow][toCol]
+        if (targetPiece != null && isSameColor(piece, targetPiece)) {
+            return false // Если фигура того же цвета, то движение недопустимо
+        }
+
+        // Проверка, что целевая клетка не под угрозой
+        if (isUnderAttack(toRow, toCol, piece)) {
+            return false // Если клетка под атакой, король не может туда пойти
+        }
+
+        return true
     }
 
-    // Проверка на пустоту пути для движения по прямой (для ладьи и слона)
+
+    private fun isUnderAttack(row: Int, col: Int, piece: String?): Boolean {
+        // Проверяем все возможные угрозы от противника
+        for (r in 0 until boardSize) {
+            for (c in 0 until boardSize) {
+                val targetPiece = boardState[r][c]
+                if (targetPiece != null && !isSameColor(piece, targetPiece)) {
+                    if (canAttack(targetPiece, r, c, row, col)) {
+                        return true // Если фигура противника может атаковать клетку, она под угрозой
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+
+    // Функция для проверки, может ли фигура атаковать данную клетку
+    private fun canAttack(piece: String, fromRow: Int, fromCol: Int, toRow: Int, toCol: Int): Boolean {
+        return when (piece) {
+            "white_pawn", "black_pawn" -> canPawnAttack(piece, fromRow, fromCol, toRow, toCol)
+            "white_rook", "black_rook" -> isValidRookMove(fromRow, fromCol, toRow, toCol)
+            "white_knight", "black_knight" -> isValidKnightMove(fromRow, fromCol, toRow, toCol)
+            "white_bishop", "black_bishop" -> isValidBishopMove(fromRow, fromCol, toRow, toCol)
+            "white_queen", "black_queen" -> isValidQueenMove(fromRow, fromCol, toRow, toCol)
+            "white_king", "black_king" -> isValidKingMove(fromRow, fromCol, toRow, toCol)
+            else -> false
+        }
+    }
+
+    // Проверка атаки пешки
+    private fun canPawnAttack(piece: String, fromRow: Int, fromCol: Int, toRow: Int, toCol: Int): Boolean {
+        val direction = if (piece == "white_pawn") 1 else -1 // Направление для белой и черной пешки
+        return Math.abs(fromCol - toCol) == 1 && toRow - fromRow == direction &&
+                boardState[toRow][toCol] != null && !isSameColor(piece, boardState[toRow][toCol]!!)
+    }
+
+
+
+
+
     private fun isPathClear(fromRow: Int, fromCol: Int, toRow: Int, toCol: Int): Boolean {
         if (fromRow == toRow) { // Горизонтальное движение (ладья)
             val start = Math.min(fromCol, toCol) + 1
