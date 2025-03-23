@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?> 
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -25,12 +25,25 @@
         android:id="@+id/player1_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+ 	android:layout_marginTop="20dp"
         android:text="Player 1"
         android:textColor="#000"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+<TextView
+    android:id="@+id/currentPlayerView"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Текущий игрок: Белые"
+    android:textSize="18sp"
+    android:layout_margin="16dp"
+    android:layout_gravity="center_horizontal"/>
+
+
+  
 
     <!-- Таймер -->
     <TextView
@@ -49,7 +62,7 @@
         android:id="@+id/player2_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="80dp"
         android:text="Player 2"
         android:textColor="#000"
         android:textSize="18sp"
@@ -67,6 +80,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/player2_info" />
+
+    <TextView
+        android:id="@+id/statusView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+	android:layout_marginBottom="40dp"
+        android:text="Статус: "
+	android:textColor="#000"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@id/backCrazyChess"
+        app:layout_constraintEnd_toEndOf="parent"
+	app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Кнопка "Назад" -->
     <Button
