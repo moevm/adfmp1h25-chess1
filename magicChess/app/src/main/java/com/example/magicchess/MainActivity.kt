@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         button4.setOnClickListener {
-            val intent = Intent(this, ModeScreen::class.java)
+            val intent = Intent(this, AppCompatActivity::class.java)
             startActivity(intent)
         }
     }
