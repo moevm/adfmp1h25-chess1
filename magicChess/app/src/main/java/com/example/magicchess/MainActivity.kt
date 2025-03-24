@@ -39,8 +39,13 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        // Обновленный обработчик для кнопки "Старт"
         button4.setOnClickListener {
-            val intent = Intent(this, AppCompatActivity::class.java)
+            val intent = Intent(this, ClassicChess::class.java)
+            intent.putExtra("player", "friend")
+            intent.putExtra("mode", "classic")
+            intent.putExtra("color", "white") // По умолчанию пусть игрок будет играть белыми
+            intent.putExtra("time", "without") // Время не устанавливается
             startActivity(intent)
         }
     }
