@@ -42,6 +42,19 @@
     android:layout_margin="16dp"
     android:layout_gravity="center_horizontal"/>
 
+<TextView
+    android:id="@+id/pauseTextView"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:text="Пауза"
+    android:textSize="24sp"
+    android:textColor="#FF0000"
+    android:visibility="gone"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent" />
 
   
 
@@ -94,6 +107,7 @@
 	app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Кнопка "Назад" -->
+
     <Button
         android:id="@+id/backClassicChess"
         android:layout_width="wrap_content"
@@ -103,6 +117,20 @@
         android:text="Назад"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.171"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/pauseClassicChess"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:backgroundTint="#2196F3"
+        android:text="Pause"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.839"
+        app:layout_constraintStart_toStartOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

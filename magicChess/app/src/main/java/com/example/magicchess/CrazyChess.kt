@@ -11,6 +11,12 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.view.View
 import kotlin.random.Random
+import android.widget.Button
+import androidx.appcompat.app.AlertDialog
+import android.content.Intent
+import android.graphics.drawable.ColorDrawable
+
+
 
 
 class CrazyChess : AppCompatActivity() {
@@ -33,23 +39,35 @@ class CrazyChess : AppCompatActivity() {
     private var timeLimit: String? = null
     private var currentPlayerColor: String = "white"
     private var CompType: String = "nocomp"
+    private lateinit var pauseButton: Button
+    private var isPaused = false
+    private var remainingWhiteTimeMillis: Long = 0L
+    private var remainingBlackTimeMillis: Long = 0L
+    private lateinit var pauseTextView: TextView
+    private lateinit var backClassicChess: Button
+    private var selectedCell: ImageView? = null
+    private var previousCellColor: Int? = null
 
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_crazy_chess)
+        setContentView(R.layout.activity_classic_chess)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.about_2)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        backClassicChess = findViewById(R.id.backClassicChess)
+
+        initializeUI()
 
         chessBoard = findViewById(R.id.chess_board)
         timerView2 = findViewById(R.id.timerView)
         timerView = findViewById(R.id.timerView2)
         currentPlayerView = findViewById(R.id.currentPlayerView)
+        pauseTextView = findViewById(R.id.pauseTextView)
 
         setupChessBoard()
         val playerType = intent.getStringExtra("player") ?: "friend"
@@ -85,7 +103,104 @@ class CrazyChess : AppCompatActivity() {
         }
         findViewById<TextView>(R.id.player1_info).text = player1Name
         findViewById<TextView>(R.id.player2_info).text = player2Name
+        pauseButton = findViewById(R.id.pauseClassicChess)
+
+        pauseButton.setOnClickListener {
+            if (!isPaused) {
+                pauseTimers()
+                pauseButton.text = "Возобновить"
+                isPaused = true
+            } else {
+                resumeTimers()
+                pauseButton.text = "Пауза"
+                isPaused = false
+            }
+        }
+
+        if (timeLimit == "without" || playerType == "online") {
+            pauseButton.visibility = View.GONE
+        } else {
+            pauseButton.setOnClickListener {
+                if (!isPaused) {
+                    pauseTimers()
+                    pauseButton.text = "Возобновить"
+                    pauseTextView.visibility = View.VISIBLE
+                    isPaused = true
+                    disableChessBoard()
+                } else {
+                    resumeTimers()
+                    pauseButton.text = "Пауза"
+                    pauseTextView.visibility = View.GONE
+                    isPaused = false
+                    enableChessBoard()
+                }
+            }
+        }
     }
+
+    private fun initializeUI() {
+        chessBoard = findViewById(R.id.chess_board)
+        timerView = findViewById(R.id.timerView)
+        timerView2 = findViewById(R.id.timerView2)
+        currentPlayerView = findViewById(R.id.currentPlayerView)
+        pauseButton = findViewById(R.id.pauseClassicChess)
+        pauseTextView = findViewById(R.id.pauseTextView)
+        backClassicChess = findViewById(R.id.backClassicChess)
+
+        backClassicChess.setOnClickListener { showExitConfirmationDialog() }
+    }
+
+
+
+
+    private fun disableChessBoard() {
+        val chessBoard = findViewById<GridLayout>(R.id.chess_board)
+        for (i in 0 until chessBoard.childCount) {
+            chessBoard.getChildAt(i).isClickable = false
+        }
+    }
+
+    private fun enableChessBoard() {
+        val chessBoard = findViewById<GridLayout>(R.id.chess_board)
+        for (i in 0 until chessBoard.childCount) {
+            chessBoard.getChildAt(i).isClickable = true
+        }
+    }
+
+    private fun showExitConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Выход в главное меню")
+            .setMessage("Вы уверены, что хотите выйти?")
+            .setPositiveButton("Да") { _, _ ->
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton("Нет") { dialog, _ -> dialog.dismiss() }
+            .create()
+            .show()
+    }
+
+    override fun onBackPressed() {
+        AlertDialog.Builder(this)
+            .setTitle("Выход в главное меню")
+            .setMessage("Вы уверены, что хотите выйти?")
+            .setPositiveButton("Да") { _, _ ->
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton("Нет") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setOnCancelListener {
+
+                super.onBackPressed()
+            }
+            .create()
+            .show()
+    }
+
 
 
 
@@ -110,6 +225,54 @@ class CrazyChess : AppCompatActivity() {
                 }
                 chessBoard.addView(cell)
             }
+        }
+    }
+
+    private fun pauseTimers() {
+        if (currentPlayer == "white" && isWhiteTimerRunning) {
+            whiteTimer.cancel()
+            remainingWhiteTimeMillis = whiteTimeMillis
+            isWhiteTimerRunning = false
+        } else if (currentPlayer == "black" && isBlackTimerRunning) {
+            blackTimer.cancel()
+            remainingBlackTimeMillis = blackTimeMillis
+            isBlackTimerRunning = false
+        }
+    }
+
+    private fun resumeTimers() {
+        if (currentPlayer == "white" && !isWhiteTimerRunning) {
+            whiteTimer = object : CountDownTimer(remainingWhiteTimeMillis, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    whiteTimeMillis = millisUntilFinished
+                    val minutes = millisUntilFinished / 1000 / 60
+                    val seconds = millisUntilFinished / 1000 % 60
+                    timerView.text = String.format("%02d:%02d", minutes, seconds)
+                }
+
+                override fun onFinish() {
+                    Toast.makeText(this@CrazyChess, "Время вышло! Побеждают Черные", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+            whiteTimer.start()
+            isWhiteTimerRunning = true
+        } else if (currentPlayer == "black" && !isBlackTimerRunning) {
+            blackTimer = object : CountDownTimer(remainingBlackTimeMillis, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    blackTimeMillis = millisUntilFinished
+                    val minutes = millisUntilFinished / 1000 / 60
+                    val seconds = millisUntilFinished / 1000 % 60
+                    timerView2.text = String.format("%02d:%02d", minutes, seconds)
+                }
+
+                override fun onFinish() {
+                    Toast.makeText(this@CrazyChess, "Время вышло! Побеждают Белые", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+            blackTimer.start()
+            isBlackTimerRunning = true
         }
     }
 
@@ -175,11 +338,17 @@ class CrazyChess : AppCompatActivity() {
 
 
 
+
+
+
+
+
     private fun onCellClicked(row: Int, col: Int) {
         if (selectedPiece == null) {
             if (boardState[row][col]?.startsWith(currentPlayer) == true) {
                 selectedPiece = row to col
                 Toast.makeText(this, "Выбрана фигура: $row,$col", Toast.LENGTH_SHORT).show()
+                highlightCell(row, col) // Подсвечиваем клетку
             } else {
                 Toast.makeText(this, "Сейчас ходит $currentPlayer!", Toast.LENGTH_SHORT).show()
             }
@@ -190,19 +359,39 @@ class CrazyChess : AppCompatActivity() {
                 boardState[row][col] = boardState[fromRow][fromCol]
                 boardState[fromRow][fromCol] = null
                 updateBoard()
+                resetHighlightedCell()
                 selectedPiece = null
                 switchPlayer()
             } else {
                 Toast.makeText(this, "Неверный ход", Toast.LENGTH_SHORT).show()
+                resetHighlightedCell()
                 selectedPiece = null
             }
         }
+    }
+
+
+    private fun highlightCell(row: Int, col: Int) {
+        val cell = chessBoard.getChildAt(row * boardSize + col) as ImageView
+        resetHighlightedCell()
+
+        previousCellColor = (cell.background as? ColorDrawable)?.color
+
+        selectedCell = cell
+        selectedCell?.setBackgroundResource(R.drawable.chessborder)
+    }
+
+    private fun resetHighlightedCell() {
+        selectedCell?.setBackgroundColor(previousCellColor ?: android.graphics.Color.TRANSPARENT)
+        selectedCell = null
+        previousCellColor = null
     }
 
     private fun switchPlayer() {
         currentPlayer = if (currentPlayer == "white") "black" else "white"
         updateCurrentPlayerView()
         startTimerForCurrentPlayer()
+
         val statusView: TextView = findViewById(R.id.statusView)
         if (isUnderAttackForCurrentKing()) {
             if (isCheckmate(currentPlayer)) {
